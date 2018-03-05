@@ -38,10 +38,10 @@ EELAYER END
 $Descr A4 11693 8268
 encoding utf-8
 Sheet 1 1
-Title ""
-Date ""
+Title "LED Board - Hot IRmadillo Lid"
+Date "2018-03-05"
 Rev ""
-Comp ""
+Comp "KEIT Ltd. "
 Comment1 ""
 Comment2 ""
 Comment3 ""

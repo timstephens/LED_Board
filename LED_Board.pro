@@ -1,4 +1,4 @@
-update=20/02/2018 17:28:18
+update=05/03/2018 10:41:23
 version=1
 last_client=kicad
 [pcbnew]
@@ -62,3 +62,13 @@ LibName32=valves
 LibName33=C:/Users/tim.stephens/Documents/GitHub/TJS-Kicad/TJS
 [general]
 version=1
+[schematic_editor]
+version=1
+PageLayoutDescrFile=C:/Users/tim.stephens/Documents/Kicad/Keit Template.kicad_wks
+PlotDirectoryName=
+SubpartIdSeparator=0
+SubpartFirstId=65
+NetFmtName=
+SpiceForceRefPrefix=0
+SpiceUseNetNumbers=0
+LabSize=60
