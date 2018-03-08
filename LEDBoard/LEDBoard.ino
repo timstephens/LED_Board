@@ -10,9 +10,9 @@
 
 
 //The device address, in write mode (add 1 to the LSB for reading):
-#define ADDRESS 0b11000000
+#define ADDRESS 0b1100000  //7 bits here because it's a "feature" of the Wire library...
 
-enum pinState {PIN_OFF = 0b00, PIN_ON = 0b01, PIN_FLASH0 = 0b10, PIN_FLASH1 = 0b11};  //These are defined in the datasheet for the PCA9531 led driver.
+enum pinState {PIN_ON = 0b00, PIN_OFF = 0b01, PIN_FLASH0 = 0b10, PIN_FLASH1 = 0b11};  //These are defined in the datasheet for the PCA9531 led driver.
 
 byte ledStatusL, ledStatusH;
 
@@ -23,10 +23,16 @@ void setup() {
   while (!Serial);
   //Hold here until the COM port is connected.
   Serial.println("Connected to LED Board control");
+  Serial.println("\"wx,y\" where x = pin number, y=mode");
+  Serial.println("MODE  |  SETTING");
+  Serial.println("  0   | PIN ON");
+  Serial.println("  1   | PIN OFF");
+  Serial.println("  2   | SLOW FLASH");
+  Serial.println("  3   | QUICK FLASH");
 
   //Initialise the globals
-  ledStatusL = 0;
-  ledStatusH = 0;
+  ledStatusL = 0b01010101;
+  ledStatusH = 0b01010101;
 
 
   //Some setup required here to configure the blink rates that we want to use:
@@ -40,12 +46,19 @@ void setup() {
   Wire.beginTransmission(ADDRESS); //enter the address of the device here (all address pins held low), bit 8 0=write, 1=read
   //Use the control register to select the correct data to send next.
   Wire.write(byte(0b00010001)); //b4 set to AutoIncrement so that we can also update the nest registers at the same time.
-  Wire.write(byte(0xFF));  //prescaler0 - period = 1.69s
+  delay(100);
+  Wire.write(byte(0b0101000));  //prescaler0 - period = 1.69s
+  delay(100);
   Wire.write(byte(0b1000000));  //PWM0 50% duty cycle
-  Wire.write(byte(0b00101111));  //prescaler1 = 0.3s
+  delay(100);
+  Wire.write(byte(0b00001100));  //prescaler1 = 0.3s
+  delay(100);
   Wire.write(byte(0b1000000));  //PWM1 50% duty cycle
   Wire.endTransmission();
   delay(100); //Let things happen on the bus and in the device.
+
+  writeToDevice();  //
+
 }
 
 void loop() {
@@ -86,7 +99,7 @@ void loop() {
         int ledMode = command.substring(3, 4).toInt();
 
         setPin(led, ledMode);
-
+        writeToDevice();  //
 
       } else if (command.startsWith("r")) {
         //We have a read event
@@ -125,6 +138,7 @@ void setPin(int pinNo, byte state) {
   Serial.println(ledStatusL, BIN);
   Serial.print("H: ");
   Serial.println(ledStatusH, BIN);
+
 }
 
 byte readPin() {
