@@ -34,7 +34,6 @@ void setup() {
   ledStatusL = 0b01010101;
   ledStatusH = 0b01010101;
 
-
   //Some setup required here to configure the blink rates that we want to use:
   /*
     Frequency prescaler 0
@@ -45,7 +44,7 @@ void setup() {
   */
   Wire.beginTransmission(ADDRESS); //enter the address of the device here (all address pins held low), bit 8 0=write, 1=read
   //Use the control register to select the correct data to send next.
-  Wire.write(byte(0b00010001)); //b4 set to AutoIncrement so that we can also update the nest registers at the same time.
+  Wire.write(byte(0b00010001)); //b4 set to AutoIncrement so that we can also update the next registers at the same time.
   delay(100);
   Wire.write(byte(0b0101000));  //prescaler0 - period = 1.69s
   delay(100);
@@ -58,7 +57,6 @@ void setup() {
   delay(100); //Let things happen on the bus and in the device.
 
   writeToDevice();  //
-
 }
 
 void loop() {
@@ -92,7 +90,6 @@ void loop() {
     if (command.length() > 5) {
       Serial.println("Error: Command too long");
     } else {
-
       if (command.startsWith("w")) {
         //We have a write event
         int led = command.substring(1, 2).toInt();
@@ -103,11 +100,13 @@ void loop() {
 
       } else if (command.startsWith("r")) {
         //We have a read event
-        Serial.println("Reading data");
         reading = readPin();
-        Serial.print("Reading: ");
-        Serial.println(reading, BIN);
-
+        //Serial.print("Reading: ");
+        // Serial.println(reading, BIN);
+      } else if (command.startsWith("i")) {
+        Serial.println("Reinitialising");
+        //initialise the device again -- we'll just run setup() again.
+        setup();
       } else {
         Serial.println("Error: Command not recognised");
       }
@@ -115,8 +114,7 @@ void loop() {
 
   }
 
-
-  //Send keepalive?
+  //Might want to poll for a keepalive or something in here (e.g. could power off the LINK light on the PCB if nothing detected for >xx seconds).
 
 }
 
@@ -144,14 +142,16 @@ void setPin(int pinNo, byte state) {
 byte readPin() {
   //Read the input pins (and maybe all pins)
   byte reading = 0;
-  Serial.println((ADDRESS | 0b1), BIN);
-  Wire.beginTransmission(ADDRESS | 0b1);  //set the LSB and make the device a read for this operation.
+  Serial.println("Reading...");
+  Wire.beginTransmission(ADDRESS);  //set the LSB and make the device a read for this operation.
   //Use the control register to select the correct data to send next.
-  Wire.write(byte(0b00000001));
-
+  Wire.write(byte(0b00000000));
+  Wire.endTransmission();
+  
   Wire.requestFrom(ADDRESS, 1); //ask for a byte from the device.
-  if (1 <= Wire.available()) {
+  while (Wire.available()) {
     reading = Wire.read();
+    Serial.println(reading, BIN);
   }
   return reading;
 }
@@ -168,4 +168,6 @@ void writeToDevice() {
   Wire.endTransmission();
 
 }
+
+
 
